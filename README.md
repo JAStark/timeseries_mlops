@@ -35,3 +35,9 @@ Weather API
   Having both current and forecast data could be really interesting as I can compare my predictions with the API's predictions _and_ the real outcome.
   I can also use their predictions _and/or_ the current values (truth) to track my algorithm performance against, and use to determine when to retrain my algorithm.
 - Collect at the highest frequency on my plan: 25 calls per day, or once every hour.
+
+## Repo configuration notes:
+- GitOps as described [here](https://cloud.google.com/architecture/managing-infrastructure-as-code) where we have:
+- a `dev` branch and a `prod` branch
+- cloud build app configured in GitHub and a Cloud Build trigger configured in GCP so that when I push to GitHub, it triggers a build.
+- `dev` and `prod` branches protected, in that only when the feature branch cloud build passes, can `dev` be merged into, and likewise for `dev` into `prod`.  
