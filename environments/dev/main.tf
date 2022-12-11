@@ -31,14 +31,13 @@ resource "google_storage_bucket_object" "historical_weather_cloud_function" {
 
 # Set up the Cloud Function itself
 resource "google_cloudfunctions_function" "collect_historical_weather" {
-  name = "timeseries_mlops_collect_historical_weather"
-  description = "Function to collect yesterday's hourly weather data"
-  runtime = "python310"
-  available_memory_mb = 128
+  name                  = "timeseries_mlops_collect_historical_weather"
+  description           = "Function to collect yesterday's hourly weather data"
+  runtime               = "python310"
+  available_memory_mb   = 128
   timeout               = 120
   source_archive_bucket = google_storage_bucket.timeseries_mlops_cloud_functions.name
   source_archive_object = google_storage_bucket_object.historical_weather_cloud_function.name
-  runtime               = "python37"
   entry_point           = "hello_fetch_historical_data"
   # ingress_settings      = "ALLOW_INTERNAL_ONLY"
   event_trigger {
