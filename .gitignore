@@ -1,3 +1,6 @@
 __pycache__
 **.log
 **.zip
+
+# ignore terraform files created when you run `terraform plan` locally
+**.terraform**
