@@ -36,7 +36,7 @@ steps:
 
 # [START Cloud Functions prep]
 - id: 'cloud functions prep'
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'sh'
   args:
     - '-c'
