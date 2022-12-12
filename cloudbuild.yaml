@@ -36,13 +36,15 @@ steps:
 
 # [START Cloud Functions prep]
 - id: 'cloud functions prep'
-  name: 'alpine'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'sh'
   args:
     - '-c'
     - |
       echo "$BRANCH_NAME"
-      cd ./cloud_functions
+      pwd
+      ls
+      cd cloud_functions
       for i in */; do zip -r "${i%/}.zip" "$i"; done
 # [END Cloud Functions prep]
 
