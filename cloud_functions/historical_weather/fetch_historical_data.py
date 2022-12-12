@@ -19,6 +19,8 @@ from datetime import datetime, timedelta
 # from google.cloud import exceptions
 from google.cloud import storage
 
+logging.basicConfig(level=logging.DEBUG)
+
 API_KEY = os.environ["API_KEY"]
 PROJECT_ID = os.environ["PROJECT_ID"]
 BUCKET = storage.Client("PROJECT_ID")
@@ -84,7 +86,5 @@ def hello_fetch_historical_data(date: str) -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        log_filename="historical_weather.log", encoding="utf-8", level=logging.DEBUG
-    )
+    logging.basicConfig(level=logging.DEBUG)
     fetch_historical_data(sys.argv[1])

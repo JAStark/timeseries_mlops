@@ -32,6 +32,21 @@ steps:
           cd ../../
         done
       fi
+# [END Terraform init]
+
+# [START Cloud Functions prep]
+- id: 'cloud functions prep'
+  name: 'alpine'
+  entry_point: 'sh'
+  args:
+    - '-c'
+    - |
+      echo "$BRANCH_NAME"
+      cd ./cloud_functions
+      for i in */; do zip -r "${i%/}.zip" "$i"; done
+# [END Cloud Functions prep]
+
+
 # [START tf-plan]
 - id: 'tf plan'
   name: 'hashicorp/terraform:1.3.6'

@@ -1,11 +1,11 @@
 # Set up PubSub for Cloud Schedular
 resource "google_pubsub_topic" "historical_weather_topic" {
-  name = "historical_weather_topic_dev"
+  name = "historical_weather_topic_prod"
 }
 
 # Set uo Cloud Schedular to trigger Cloud Function once per day
 resource "google_cloud_scheduler_job" "historical_weather_schedular" {
-  name        = "historical_weather_schedular_dev"
+  name        = "historical_weather_schedular_prod"
   description = "Cron Job to start the collection of Historical Weather"
   schedule    = "0 7 * * *" # Run at 7am
   time_zone   = "Europe/London"
@@ -18,7 +18,7 @@ resource "google_cloud_scheduler_job" "historical_weather_schedular" {
 
 # Set up Cloud Storage Bucket for Cloud Function to read code from
 resource "google_storage_bucket" "timeseries_mlops_cloud_functions" {
-  name = "timeseries_mlops_cloud_functions_dev"
+  name = "timeseries_mlops_cloud_functions_prod"
   location = var.region
 }
 
@@ -31,7 +31,7 @@ resource "google_storage_bucket_object" "historical_weather_cloud_function" {
 
 # Set up the Cloud Function itself
 resource "google_cloudfunctions_function" "collect_historical_weather" {
-  name                  = "timeseries_mlops_collect_historical_weather_dev"
+  name                  = "timeseries_mlops_collect_historical_weather_prod"
   description           = "Function to collect yesterday's hourly weather data"
   runtime               = "python310"
   available_memory_mb   = 128
