@@ -37,7 +37,7 @@ steps:
 # [START Cloud Functions prep]
 - id: 'cloud functions prep'
   name: 'alpine'
-  entry_point: 'sh'
+  entrypoint: 'sh'
   args:
     - '-c'
     - |
