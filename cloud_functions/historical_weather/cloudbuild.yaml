@@ -8,6 +8,6 @@ steps:
   - timeseries_mlops_collect_historical_weather_dev
   - --entry-point=hello_fetch_historical_data
   - --region=europe-west1
-  - --source=.
+  - --source=./cloud_functions/historical_weather/main.py
   - --trigger-topic=historical_weather_topic
   - --runtime=python310
