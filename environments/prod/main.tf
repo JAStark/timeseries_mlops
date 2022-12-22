@@ -29,8 +29,26 @@ resource "google_storage_bucket_object" "historical_weather_cloud_function" {
   source = "./cloud_functions"
 }
 
+# set up trigger so that cloud build deploys CF upon code change in CF
+resource "google_cloudbuild_trigger" "prod-historical-weather-cf-trigger" {
+  name = "prod-historical-weather-cf-deploy-trigger"
+  description = "PROD Cloud Build trigger to deploy fetch_historical_data.py CF if changed."
+  location = var.region
+
+  github {
+    owner         = "JAStark"
+    name          = "timeseries_mlops"
+    push {
+      branch      = "^prod$"
+      }
+  }
+
+  included_files  = ["cloud_functions/historical_weather/*"]
+  filename        = "cloud_functions/historical_weather/cloudbuild.yaml"
+}
+
 # Set up the Cloud Function itself
-resource "google_cloudfunctions_function" "collect_historical_weather" {
+resource "google_cloudfunctions_function" "prod-collect_historical_weather" {
   name                  = "timeseries_mlops_collect_historical_weather_prod"
   description           = "Function to collect yesterday's hourly weather data"
   runtime               = "python310"

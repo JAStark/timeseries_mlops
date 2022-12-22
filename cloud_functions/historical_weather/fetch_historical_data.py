@@ -18,22 +18,29 @@ from datetime import datetime, timedelta
 
 # from google.cloud import exceptions
 from google.cloud import storage
+from google.api_core import exceptions
 
 logging.basicConfig(level=logging.DEBUG)
 
 API_KEY = os.environ["API_KEY"]
 PROJECT_ID = os.environ["PROJECT_ID"]
-BUCKET = storage.Client("PROJECT_ID")
+storage_client = storage.Client("PROJECT_ID")
 
 
 def write_to_storage(json_data: dict, yesterday: str) -> None:
     """Funtion to write json data to file in GCS.
     File name: historical_weather_<YYYY-MM-DD>
     """
-    filename = f"historical_weather/{json_data}.json"
+
+    bucket_name = os.environ["BUCKET_NAME"]
+    filename = f"historical_weather/manchester_weather_{yesterday}.json"
     try:
-        bucket = BUCKET.get_bucket(bucket_name)
-        blob = bucket.blob()
+        bucket = storage_client.get_bucket(bucket_name)
+        blob = bucket.blob(filename)
+        blob.upload_from_string(data=json_data, content_type="application/json")
+        logging.info(f"File {file_name} uploaded to {bucket_name}.")
+    except exceptions.NotFound as e:
+        logging.error(f"Bucket: {bucket_name} does not exist. Error: {e}")
     except Exception as e:
         logging.info(f"Something went wrong. Check the logs {e}")
 
@@ -51,11 +58,13 @@ def fetch_historical_data(date):
     url = f"https://api.weatherapi.com/v1/history.json?key={API_KEY}&q=manchester&dt={date}"
     response = requests.request("GET", url)
     logging.info(f"Data collected for {date}: \n{response.text}")
+    return reponse
 
 
 def main():
     yesterday = get_yesterday()
-    fetch_historical_data(yesterday)
+    json_data = fetch_historical_data(yesterday)
+    write_to_storage(json_data, yesterday)
 
 
 def hello_fetch_historical_data(date: str) -> None:
