@@ -41,11 +41,13 @@ steps:
   name: bash
   script: |
     #!/usr/bin/env bash
-    apt-get -qqy install zip bzip2 gzip
+    apk add zip
     cd cloud_functions
     pwd
     ls
     for i in */; do zip -r "${i%/}.zip" "$i"; done
+    pwd
+    ls
   # name: bash
   # args: ['./scripts/zip_cloud_functions.sh']
 # [END Cloud Functions prep]
