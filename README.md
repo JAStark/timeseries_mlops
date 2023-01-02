@@ -28,6 +28,11 @@ Weather API
 - Cloud Schedular to trigger the Cloud Function every hour or 30 minutes or something to collect data. Frequency will depend on the endpoint.
 - Google Secrets Manager for the API key
 
+## Dealing with secrets
+I used terraform to create the secret manager for the API Key secret. Then, I went into the newly created resource in the Console and added a `version`, where I pasted in the API Key. Another option is to give it a file path, but the key is tiny, so I just pasted it in.
+
+Now, hopefully, I can reference the secret in terraform using the `data.` syntax ... :fingers_crossed:
+
 ## Data Collection
 - 7 day historical collection limit. Need to start collecting!
 - Current data.

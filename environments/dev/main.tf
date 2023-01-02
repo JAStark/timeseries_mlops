@@ -50,7 +50,7 @@ resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
 resource "google_storage_bucket_object" "dev_historical_weather_cloud_function" {
   name   = "dev-historical-weather.zip"
   bucket = google_storage_bucket.timeseries_mlops_cloud_functions.name
-  source = "./cloud_functions/historical_weather.zip"
+  source = "./workspace/cloud_functions/historical_weather.zip"
 }
 
 # Set up the Secret Manager which will contain the API_KEY
@@ -68,9 +68,26 @@ resource "google_secret_manager_secret" "weather_api_key_dev" {
 
 # Get the secret version itself. The version (actual secret) will be set up manually
 # in the Console.
-# data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
-#   secret = "weather_api_key_version_dev"
-# }
+data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
+  secret = "weather_api_key_dev"
+}
+
+# Set IAM Policy so CF can access secrets
+data "google_iam_policy" "admin" {
+  binding {
+    role = "roles/secretmanager.secretAccessor"
+    members = [
+      "user:silver-antonym-326607@appspot.gserviceaccount.com",
+    ]
+  }
+}
+
+resource "google_secret_manager_secret_iam_policy" "policy" {
+  project = var.project_id
+  secret_id = google_secret_manager_secret.weather_api_key_dev.secret_id
+  policy_data = data.google_iam_policy.admin.policy_data
+}
+
 
 # Set up the Cloud Function itself
 resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
@@ -82,7 +99,7 @@ resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
   source_archive_bucket = google_storage_bucket.timeseries_mlops_cloud_functions.name
   source_archive_object = google_storage_bucket_object.dev_historical_weather_cloud_function.name
   entry_point           = "hello_fetch_historical_data"
-  # ingress_settings      = "ALLOW_INTERNAL_ONLY"
+  ingress_settings      = "ALLOW_INTERNAL_ONLY"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.historical_weather_topic.id
@@ -93,6 +110,6 @@ resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
   environment_variables = {
     PROJECT_ID  = var.project_id
     BUCKET_NAME = google_storage_bucket.timeseries_mlops_weather_api_data.name
-    # API_KEY     = data.google_secret_manager_secret_version.weather_api_key_version_dev.name
+    API_KEY     = data.google_secret_manager_secret_version.weather_api_key_version_dev.name
   }
 }
