@@ -50,7 +50,7 @@ resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
 resource "google_storage_bucket_object" "dev_historical_weather_cloud_function" {
   name   = "dev-historical-weather.zip"
   bucket = google_storage_bucket.timeseries_mlops_cloud_functions.name
-  source = "./cloud_functions/dev-historical-weather.zip"
+  source = "./cloud_functions/historical_weather.zip"
 }
 
 # Set up the Secret Manager which will contain the API_KEY
@@ -59,9 +59,6 @@ resource "google_secret_manager_secret" "weather_api_key_dev" {
 
   replication {
     user_managed {
-      replicas {
-        location = var.region
-      }
       replicas {
         location = var.region
       }
