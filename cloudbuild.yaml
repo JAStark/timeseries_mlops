@@ -1,3 +1,4 @@
+---
 # [START Terraform init]
 steps:
 - id: 'branch name'
@@ -35,19 +36,20 @@ steps:
 # [END Terraform init]
 
 # [START Cloud Functions prep]
-# - id: 'cloud functions prep'
-#   name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-#   entrypoint: 'sh'
-#   args:
-#     - '-c'
-#     - |
-#       echo "$BRANCH_NAME"
-#       pwd
-#       ls
-#       cd cloud_functions
-#       pwd
-#       ls
-#       for i in */; do zip -r "${i%/}.zip" "$i"; done
+- id: 'cloud functions prep'
+  # name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+  name: bash
+  script: |
+    #!/usr/bin/env bash
+    apk add zip
+    cd cloud_functions
+    pwd
+    ls
+    for i in */; do zip -r "${i%/}.zip" "$i"; done
+    pwd
+    ls
+  # name: bash
+  # args: ['./scripts/zip_cloud_functions.sh']
 # [END Cloud Functions prep]
 
 
@@ -93,3 +95,4 @@ steps:
         echo "*******************************************************************************"
       fi
 # [END tf-apply]
+...

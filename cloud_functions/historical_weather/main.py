@@ -58,7 +58,7 @@ def fetch_historical_data(date):
     url = f"https://api.weatherapi.com/v1/history.json?key={API_KEY}&q=manchester&dt={date}"
     response = requests.request("GET", url)
     logging.info(f"Data collected for {date}: \n{response.text}")
-    return reponse
+    return response
 
 
 def main():
