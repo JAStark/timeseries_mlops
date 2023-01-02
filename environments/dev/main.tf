@@ -68,9 +68,9 @@ resource "google_secret_manager_secret" "weather_api_key_dev" {
 
 # Get the secret version itself. The version (actual secret) will be set up manually
 # in the Console.
-data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
-  secret = "weather_api_key_version_dev"
-}
+# data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
+#   secret = "weather_api_key_version_dev"
+# }
 
 # Set up the Cloud Function itself
 resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
@@ -93,6 +93,6 @@ resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
   environment_variables = {
     PROJECT_ID  = var.project_id
     BUCKET_NAME = google_storage_bucket.timeseries_mlops_weather_api_data.name
-    API_KEY     = data.google_secret_manager_secret_version.weather_api_key_version_dev.name
+    # API_KEY     = data.google_secret_manager_secret_version.weather_api_key_version_dev.name
   }
 }
