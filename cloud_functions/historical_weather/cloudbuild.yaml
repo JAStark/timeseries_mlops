@@ -5,7 +5,7 @@ steps:
   - gcloud
   - functions
   - deploy
-  - timeseries_mlops_collect_historical_weather_dev
+  - timeseries-mlops-collect-historical-weather-dev
   - --entry-point=hello_fetch_historical_data
   - --region=europe-west1
   - --source=./cloud_functions/historical_weather/

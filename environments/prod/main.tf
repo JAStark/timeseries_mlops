@@ -18,33 +18,33 @@ resource "google_cloud_scheduler_job" "historical_weather_schedular" {
 
 # Set up Cloud Storage Bucket for Cloud Function to read code from
 resource "google_storage_bucket" "timeseries_mlops_cloud_functions" {
-  name = "timeseries_mlops_cloud_functions_prod"
+  name     = "timeseries_mlops_cloud_functions_prod"
   location = var.region
 }
 
 # Set up path to zip file containing code for this Cloud Function
 resource "google_storage_bucket_object" "historical_weather_cloud_function" {
-  name = "historical_weather.zip"
+  name   = "historical_weather.zip"
   bucket = google_storage_bucket.timeseries_mlops_cloud_functions.name
   source = "./cloud_functions"
 }
 
 # set up trigger so that cloud build deploys CF upon code change in CF
 resource "google_cloudbuild_trigger" "prod-historical-weather-cf-trigger" {
-  name = "prod-historical-weather-cf-deploy-trigger"
+  name        = "prod-historical-weather-cf-deploy-trigger"
   description = "PROD Cloud Build trigger to deploy fetch_historical_data.py CF if changed."
-  location = var.region
+  location    = var.region
 
   github {
-    owner         = "JAStark"
-    name          = "timeseries_mlops"
+    owner = "JAStark"
+    name  = "timeseries_mlops"
     push {
-      branch      = "^prod$"
-      }
+      branch = "^prod$"
+    }
   }
 
-  included_files  = ["cloud_functions/historical_weather/*"]
-  filename        = "cloud_functions/historical_weather/cloudbuild.yaml"
+  included_files = ["cloud_functions/historical_weather/*"]
+  filename       = "cloud_functions/historical_weather/cloudbuild.yaml"
 }
 
 # Set up the Cloud Function itself
@@ -60,12 +60,12 @@ resource "google_cloudfunctions_function" "prod-collect_historical_weather" {
   # ingress_settings      = "ALLOW_INTERNAL_ONLY"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource = google_pubsub_topic.historical_weather_topic.id
+    resource   = google_pubsub_topic.historical_weather_topic.id
     failure_policy {
       retry = false
     }
   }
   environment_variables = {
-  PROJECT_ID  = var.project_id
+    PROJECT_ID = var.project_id
   }
 }

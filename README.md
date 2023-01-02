@@ -25,7 +25,7 @@ Weather API
 - IaC using Terraform with the Google Provider
 - Cloud Functions to call the weather API
 - JSON file outputs to go to Google Cloud Storage
-- Cloud Schedular to trigger the Cloud Function every hour or 30 minutes to collect data
+- Cloud Schedular to trigger the Cloud Function every hour or 30 minutes or something to collect data. Frequency will depend on the endpoint.
 - Google Secrets Manager for the API key
 
 ## Data Collection
