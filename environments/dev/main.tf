@@ -92,7 +92,7 @@ data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
     ]
 }
 
-Set up the Cloud Function itself
+# Set up the Cloud Function itself
 resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
   name                  = "timeseries-mlops-collect-historical-weather-dev"
   description           = "Function to collect yesterday's hourly weather data"
