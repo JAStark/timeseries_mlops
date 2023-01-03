@@ -112,4 +112,8 @@ resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
     BUCKET_NAME = google_storage_bucket.timeseries_mlops_weather_api_data.name
     API_KEY     = data.google_secret_manager_secret_version.weather_api_key_version_dev.name
   }
+
+  depends_on = [
+  google_secret_manager_secret_iam_policy.policy
+  ]
 }
