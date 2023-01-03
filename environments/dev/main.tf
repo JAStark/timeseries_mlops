@@ -88,7 +88,7 @@ data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
   secret = google_secret_manager_secret.weather_api_key_dev.secret_id
   depends_on = [
     google_secret_manager_secret.weather_api_key_dev,
-    google_secret_manager_secret_iam_policy.policy
+    # google_secret_manager_secret_iam_policy.policy
     ]
 }
 
@@ -116,7 +116,7 @@ resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
     API_KEY     = data.google_secret_manager_secret_version.weather_api_key_version_dev.name
   }
 
-  depends_on = [
-  google_secret_manager_secret_iam_policy.policy
-  ]
+  # depends_on = [
+  # google_secret_manager_secret_iam_policy.policy
+  # ]
 }
