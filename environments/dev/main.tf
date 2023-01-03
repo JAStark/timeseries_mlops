@@ -66,12 +66,6 @@ resource "google_secret_manager_secret" "weather_api_key_dev" {
   }
 }
 
-# Get the secret version itself. The version (actual secret) will be set up manually
-# in the Console.
-data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
-  secret = "weather_api_key_dev"
-}
-
 # Set IAM Policy so CF can access secrets
 data "google_iam_policy" "admin" {
   binding {
@@ -88,6 +82,14 @@ resource "google_secret_manager_secret_iam_policy" "policy" {
   policy_data = data.google_iam_policy.admin.policy_data
 }
 
+# Get the secret version itself. The version (actual secret) will be set up manually
+# in the Console.
+data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
+  secret = "weather_api_key_dev"
+  depends_on = [
+    google_secret_manager_secret_iam_policy.policy
+    ]
+}
 
 # Set up the Cloud Function itself
 # resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
