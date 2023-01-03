@@ -4,7 +4,8 @@ Returns a JSON file with data for each hour of the day.
 Unclear from the docs if this is the actual weather, or what was forecast.
 And if forecast, how far out was the forecast made?
 
-Cloud Function runs once per day.
+Cloud Function runs once per day just before midnight to fectch the predictions
+for the last 24 hours into one json file.
 
 API: https://www.weatherapi.com/docs/
 """
