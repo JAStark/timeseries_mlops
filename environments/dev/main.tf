@@ -50,7 +50,8 @@ resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
 resource "google_storage_bucket_object" "dev_historical_weather_cloud_function" {
   name   = "dev-historical-weather.zip"
   bucket = google_storage_bucket.timeseries_mlops_cloud_functions.name
-  source = "workspace/cloud_functions/historical_weather.zip"
+  source = "/workspace/cloud_functions/historical_weather.zip"
+  detect_md5hash = true
 }
 
 # Set up the Secret Manager which will contain the API_KEY
