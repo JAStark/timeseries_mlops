@@ -3,7 +3,7 @@ resource "google_pubsub_topic" "historical_weather_topic" {
   name = "historical-weather-topic-dev"
 }
 
-# Set uo Cloud Schedular to trigger Cloud Function once per day
+# Set up Cloud Schedular to trigger Cloud Function once per day
 resource "google_cloud_scheduler_job" "historical_weather_schedular" {
   name        = "historical-weather-schedular-dev"
   description = "Cron Job to start the collection of Historical Weather"

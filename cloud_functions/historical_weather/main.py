@@ -16,8 +16,8 @@ import json
 import logging
 import requests
 from datetime import datetime, timedelta
+import base64
 
-# from google.cloud import exceptions
 from google.cloud import storage
 from google.api_core import exceptions
 
@@ -25,7 +25,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 API_KEY = os.environ["API_KEY"]
 PROJECT_ID = os.environ["PROJECT_ID"]
-storage_client = storage.Client("PROJECT_ID")
+STORAGE_CLIENT = storage.Client("PROJECT_ID")
+BUCKET_NAME = os.environ["BUCKET_NAME"]
 
 
 def write_to_storage(json_data: dict, yesterday: str) -> None:
@@ -33,17 +34,26 @@ def write_to_storage(json_data: dict, yesterday: str) -> None:
     File name: historical_weather_<YYYY-MM-DD>
     """
 
-    bucket_name = os.environ["BUCKET_NAME"]
     filename = f"historical_weather/manchester_weather_{yesterday}.json"
     try:
-        bucket = storage_client.get_bucket(bucket_name)
+        bucket = STORAGE_CLIENT.get_bucket(BUCKET_NAME)
         blob = bucket.blob(filename)
         blob.upload_from_string(data=json_data, content_type="application/json")
-        logging.info(f"File {file_name} uploaded to {bucket_name}.")
+        logging.info(f"File {file_name} uploaded to {BUCKET_NAME}.")
     except exceptions.NotFound as e:
-        logging.error(f"Bucket: {bucket_name} does not exist. Error: {e}")
+        logging.error(f"Bucket: {BUCKET_NAME} does not exist. Error: {e}")
     except Exception as e:
         logging.info(f"Something went wrong. Check the logs {e}")
+
+
+def fetch_historical_data(date: str) -> dict:
+    """Function to call API and fetch histotical weather data"""
+    url = f"https://api.weatherapi.com/v1/history.json?key={API_KEY}&q=manchester&dt={date}"
+    response = requests.request("GET", url)
+    json_data = response.json()
+    logging.info(f"TYPE RESPONSE: {type(json_data)}")
+    logging.info(f"Data collected for {date}: \n{json_data}")
+    return json_data
 
 
 def get_yesterday() -> str:
@@ -52,23 +62,21 @@ def get_yesterday() -> str:
     delta = timedelta(days=1)
     yesterday = today - delta
     yesterday_formatted = yesterday.date().isoformat()
+    logging.info(f"TYPE YESTERDAY: {type(yesterday_formatted)}")
     return yesterday_formatted
 
 
-def fetch_historical_data(date):
-    url = f"https://api.weatherapi.com/v1/history.json?key={API_KEY}&q=manchester&dt={date}"
-    response = requests.request("GET", url)
-    logging.info(f"Data collected for {date}: \n{response.text}")
-    return response
-
-
 def main():
+    """Function that calls other Functions"""
+    logging.info("Starting main for historical data collection")
     yesterday = get_yesterday()
+    logging.info(f"\nYESTERDAY: {yesterday}")
     json_data = fetch_historical_data(yesterday)
+    logging.info("\nWRITING DATA TO STORAGE…")
     write_to_storage(json_data, yesterday)
 
 
-def hello_fetch_historical_data(date: str) -> None:
+def hello_fetch_historical_data(event, context=None) -> None:
     """Entry point for the Cloud Function.
     Args:
         event (dict): Event payload from the Cloud Scheduler
@@ -95,6 +103,11 @@ def hello_fetch_historical_data(date: str) -> None:
         raise Exception(f"No data received in pubsub event. Event: {event}")
 
 
+# if __name__ == "__main__":
+#     logging.basicConfig(level=logging.DEBUG)
+#     fetch_historical_data(sys.argv[1])
+
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    fetch_historical_data(sys.argv[1])
+    MESSAGE = "Historical Weather Begin!"
+    EVENT_DATA = base64.b64encode(str(MESSAGE).encode("utf-8"))
+    hello_fetch_historical_data(event={"data": EVENT_DATA})
