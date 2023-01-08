@@ -37,7 +37,6 @@ steps:
 
 # [START Cloud Functions prep]
 - id: 'cloud functions prep'
-  # name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
   name: bash
   script: |
     #!/usr/bin/env bash
@@ -45,11 +44,13 @@ steps:
     cd cloud_functions
     pwd
     ls
-    for i in */; do zip -r "${i%/}.zip" "$i"; done
+    for i in */; do
+      cd $i/
+      zip -r "../${i%/}.zip" main.py requirements.txt
+      cd ../
+    done
     pwd
     ls
-  # name: bash
-  # args: ['./scripts/zip_cloud_functions.sh']
 # [END Cloud Functions prep]
 
 
@@ -90,9 +91,9 @@ steps:
         cd environments/$BRANCH_NAME
         terraform apply -auto-approve
       else
-        echo "***************************** SKIPPING APPLYING *******************************"
+        echo "*********************** SKIPPING APPLYING ***********************"
         echo "Branch '$BRANCH_NAME' does not represent an oficial environment."
-        echo "*******************************************************************************"
+        echo "*****************************************************************"
       fi
 # [END tf-apply]
 ...
