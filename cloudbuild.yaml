@@ -45,7 +45,12 @@ steps:
     cd cloud_functions
     pwd
     ls
-    for i in */; do zip -r "${i%/}.zip" "$i"; done
+  # for i in */; do zip -r "${i%/}.zip" "$i"; done
+    for i in */; do
+      cd $i/
+      zip -r "../${i%/}.zip" main.py requirements.txt
+      cd ../
+    done
     pwd
     ls
   # name: bash
