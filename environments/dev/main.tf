@@ -121,7 +121,7 @@ resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
   secret_environment_variables {
     key        = "API_KEY"
     project_id = var.project_number
-    secret     = google_secret_manager_secret.weather_api_key_dev.id
+    secret     = google_secret_manager_secret.weather_api_key_dev.secret_id
     version    = "1"
   }
   # depends_on = [

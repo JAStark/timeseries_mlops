@@ -86,7 +86,7 @@ resource "google_cloudfunctions_function" "prod-collect_historical_weather" {
   secret_environment_variables {
     key        = "API_KEY"
     project_id = var.project_number
-    secret     = google_secret_manager_secret.weather_api_key_prod.id
+    secret     = google_secret_manager_secret.weather_api_key_prod.secret_id
     version    = "1"
   }
 }
