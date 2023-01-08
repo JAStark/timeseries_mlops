@@ -1,11 +1,11 @@
 # Set up PubSub for Cloud Schedular
 resource "google_pubsub_topic" "historical_weather_topic" {
-  name = "historical_weather_topic_prod"
+  name = "historical-weather-topic-prod"
 }
 
 # Set uo Cloud Schedular to trigger Cloud Function once per day
 resource "google_cloud_scheduler_job" "historical_weather_schedular" {
-  name        = "historical_weather_schedular_prod"
+  name        = "historical-weather-schedular-prod"
   description = "Cron Job to start the collection of Historical Weather"
   schedule    = "0 7 * * *" # Run at 7am
   time_zone   = "Europe/London"
@@ -18,46 +18,60 @@ resource "google_cloud_scheduler_job" "historical_weather_schedular" {
 
 # Set up Cloud Storage Bucket for Cloud Function to read code from
 resource "google_storage_bucket" "timeseries_mlops_cloud_functions" {
-  name     = "timeseries_mlops_cloud_functions_prod"
+  name     = "timeseries-mlops-cloud-functions-prod"
   location = var.region
+  project  = var.project_id
+}
+
+# Set up Cloud Storage Bucket for API Data outputs
+resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
+  name     = "timeseries-mlops-weather-api-data-prod"
+  location = var.region
+  project  = var.project_id
 }
 
 # Set up path to zip file containing code for this Cloud Function
-resource "google_storage_bucket_object" "historical_weather_cloud_function" {
-  name   = "historical_weather.zip"
-  bucket = google_storage_bucket.timeseries_mlops_cloud_functions.name
-  source = "./cloud_functions"
+resource "google_storage_bucket_object" "prod_historical_weather_cloud_function" {
+  name           = "prod-historical-weather.zip"
+  bucket         = google_storage_bucket.timeseries_mlops_cloud_functions.name
+  source         = "/workspace/cloud_functions/historical_weather.zip"
+  detect_md5hash = true
 }
 
-# set up trigger so that cloud build deploys CF upon code change in CF
-resource "google_cloudbuild_trigger" "prod-historical-weather-cf-trigger" {
-  name        = "prod-historical-weather-cf-deploy-trigger"
-  description = "PROD Cloud Build trigger to deploy fetch_historical_data.py CF if changed."
-  location    = var.region
+# Set up the Secret Manager which will contain the API_KEY
+resource "google_secret_manager_secret" "weather_api_key_prod" {
+  secret_id = "weather_api_key_prod"
 
-  github {
-    owner = "JAStark"
-    name  = "timeseries_mlops"
-    push {
-      branch = "^prod$"
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
     }
   }
+}
 
-  included_files = ["cloud_functions/historical_weather/*"]
-  filename       = "cloud_functions/historical_weather/cloudbuild.yaml"
+# Get the secret version itself. The version (actual secret) will be set up manually
+# in the Console.
+data "google_secret_manager_secret_version" "weather_api_key_version_prod" {
+  secret = google_secret_manager_secret.weather_api_key_prod.secret_id
+  depends_on = [
+    google_secret_manager_secret.weather_api_key_prod,
+    # google_secret_manager_secret_iam_policy.policy
+  ]
 }
 
 # Set up the Cloud Function itself
 resource "google_cloudfunctions_function" "prod-collect_historical_weather" {
-  name                  = "timeseries_mlops_collect_historical_weather_prod"
+  name                  = "timeseries-mlops-collect-historical-weather-prod"
   description           = "Function to collect yesterday's hourly weather data"
   runtime               = "python310"
   available_memory_mb   = 128
   timeout               = 120
   source_archive_bucket = google_storage_bucket.timeseries_mlops_cloud_functions.name
-  source_archive_object = google_storage_bucket_object.historical_weather_cloud_function.name
+  source_archive_object = google_storage_bucket_object.prod_historical_weather_cloud_function.name
   entry_point           = "hello_fetch_historical_data"
-  # ingress_settings      = "ALLOW_INTERNAL_ONLY"
+  ingress_settings      = "ALLOW_INTERNAL_ONLY"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.historical_weather_topic.id
@@ -66,6 +80,13 @@ resource "google_cloudfunctions_function" "prod-collect_historical_weather" {
     }
   }
   environment_variables = {
-    PROJECT_ID = var.project_id
+    PROJECT_ID  = var.project_id
+    BUCKET_NAME = google_storage_bucket.timeseries_mlops_weather_api_data.name
+  }
+  secret_environment_variables {
+    key        = "API_KEY"
+    project_id = var.project_number
+    secret     = google_secret_manager_secret.weather_api_key_prod.id
+    version    = "1"
   }
 }

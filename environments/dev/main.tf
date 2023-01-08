@@ -20,12 +20,14 @@ resource "google_cloud_scheduler_job" "historical_weather_schedular" {
 resource "google_storage_bucket" "timeseries_mlops_cloud_functions" {
   name     = "timeseries-mlops-cloud-functions-dev"
   location = var.region
+  project  = var.project_id
 }
 
 # Set up Cloud Storage Bucket for API Data outputs
 resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
   name     = "timeseries-mlops-weather-api-data-dev"
   location = var.region
+  project  = var.project_id
 }
 
 # set up trigger so that cloud build deploys CF upon code change in CF
@@ -48,9 +50,9 @@ resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
 
 # Set up path to zip file containing code for this Cloud Function
 resource "google_storage_bucket_object" "dev_historical_weather_cloud_function" {
-  name   = "dev-historical-weather.zip"
-  bucket = google_storage_bucket.timeseries_mlops_cloud_functions.name
-  source = "/workspace/cloud_functions/historical_weather.zip"
+  name           = "dev-historical-weather.zip"
+  bucket         = google_storage_bucket.timeseries_mlops_cloud_functions.name
+  source         = "/workspace/cloud_functions/historical_weather.zip"
   detect_md5hash = true
 }
 
@@ -90,7 +92,7 @@ data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
   depends_on = [
     google_secret_manager_secret.weather_api_key_dev,
     # google_secret_manager_secret_iam_policy.policy
-    ]
+  ]
 }
 
 # Set up the Cloud Function itself
@@ -114,9 +116,14 @@ resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
   environment_variables = {
     PROJECT_ID  = var.project_id
     BUCKET_NAME = google_storage_bucket.timeseries_mlops_weather_api_data.name
-    API_KEY     = data.google_secret_manager_secret_version.weather_api_key_version_dev.name
+    # API_KEY     = data.google_secret_manager_secret_version.weather_api_key_version_dev.name
   }
-
+  secret_environment_variables {
+    key        = "API_KEY"
+    project_id = var.project_number
+    secret     = google_secret_manager_secret.weather_api_key_dev.id
+    version    = "1"
+  }
   # depends_on = [
   # google_secret_manager_secret_iam_policy.policy
   # ]

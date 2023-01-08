@@ -7,3 +7,8 @@ variable "region" {
   type    = string
   default = "europe-west1"
 }
+
+variable "project_number" {
+  type    = string
+  default = "307575647034"
+}
