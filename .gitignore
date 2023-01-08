@@ -5,3 +5,7 @@ __pycache__
 # ignore terraform files created when you run `terraform plan` locally
 **.terraform**
 data/*
+
+scripts**
+
+cloud_functions/historical_weather/cloudbuild.yaml
