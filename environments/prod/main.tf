@@ -30,6 +30,14 @@ resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
   project  = var.project_id
 }
 
+resource "google_storage_bucket_acl" "timeseries_mlops_weather_api_data_acl" {
+  bucket = google_storage_bucket.timeseries_mlops_weather_api_data.name
+
+  role_entity = [
+    "WRITER:weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com",
+  ]
+}
+
 # Set up path to zip file containing code for this Cloud Function
 resource "google_storage_bucket_object" "prod_historical_weather_cloud_function" {
   name           = "prod-historical-weather.zip"
