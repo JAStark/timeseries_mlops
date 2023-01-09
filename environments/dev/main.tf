@@ -30,6 +30,14 @@ resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
   project  = var.project_id
 }
 
+resource "google_storage_bucket_acl" "timeseries_mlops_weather_api_data_acl" {
+  bucket = google_storage_bucket.timeseries_mlops_weather_api_data.name
+
+  role_entity = [
+    "WRITER:weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com",
+  ]
+}
+
 # set up trigger so that cloud build deploys CF upon code change in CF
 # resource "google_cloudbuild_trigger" "dev_historical_weather_cf_trigger" {
 #   name        = "dev-historical-weather-cf-deploy-trigger"
@@ -91,7 +99,6 @@ data "google_secret_manager_secret_version" "weather_api_key_version_dev" {
   secret = google_secret_manager_secret.weather_api_key_dev.secret_id
   depends_on = [
     google_secret_manager_secret.weather_api_key_dev,
-    # google_secret_manager_secret_iam_policy.policy
   ]
 }
 
@@ -106,6 +113,7 @@ resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
   source_archive_object = google_storage_bucket_object.dev_historical_weather_cloud_function.name
   entry_point           = "hello_fetch_historical_data"
   ingress_settings      = "ALLOW_INTERNAL_ONLY"
+  service_account_email = "weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.historical_weather_topic.id
@@ -116,7 +124,6 @@ resource "google_cloudfunctions_function" "dev_collect_historical_weather" {
   environment_variables = {
     PROJECT_ID  = var.project_id
     BUCKET_NAME = google_storage_bucket.timeseries_mlops_weather_api_data.name
-    # API_KEY     = data.google_secret_manager_secret_version.weather_api_key_version_dev.name
   }
   secret_environment_variables {
     key        = "API_KEY"

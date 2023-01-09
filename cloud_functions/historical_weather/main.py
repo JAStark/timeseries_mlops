@@ -39,7 +39,7 @@ def write_to_storage(json_data: dict, yesterday: str) -> None:
         bucket = STORAGE_CLIENT.get_bucket(BUCKET_NAME)
         blob = bucket.blob(filename)
         blob.upload_from_string(data=json_data, content_type="application/json")
-        logging.info(f"File {file_name} uploaded to {BUCKET_NAME}.")
+        logging.info(f"File {filename} uploaded to {BUCKET_NAME}.")
     except exceptions.NotFound as e:
         logging.error(f"Bucket: {BUCKET_NAME} does not exist. Error: {e}")
     except Exception as e:
@@ -50,7 +50,7 @@ def fetch_historical_data(date: str) -> dict:
     """Function to call API and fetch histotical weather data"""
     url = f"https://api.weatherapi.com/v1/history.json?key={API_KEY}&q=manchester&dt={date}"
     response = requests.request("GET", url)
-    json_data = response.json()
+    json_data = response.text
     logging.info(f"TYPE RESPONSE: {type(json_data)}")
     logging.info(f"Data collected for {date}: \n{json_data}")
     return json_data
@@ -104,8 +104,8 @@ def hello_fetch_historical_data(event, context=None) -> None:
 
 
 # if __name__ == "__main__":
-#     logging.basicConfig(level=logging.DEBUG)
-#     fetch_historical_data(sys.argv[1])
+# logging.basicConfig(level=logging.DEBUG)
+# fetch_historical_data(sys.argv[1])
 
 if __name__ == "__main__":
     MESSAGE = "Historical Weather Begin!"
