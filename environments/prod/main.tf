@@ -34,7 +34,7 @@ resource "google_storage_bucket_acl" "timeseries_mlops_weather_api_data_acl" {
   bucket = google_storage_bucket.timeseries_mlops_weather_api_data.name
 
   role_entity = [
-    "WRITER:weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com",
+    "WRITER:user-weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com",
   ]
 }
 
