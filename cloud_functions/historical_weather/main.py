@@ -103,11 +103,12 @@ def hello_fetch_historical_data(event, context=None) -> None:
         raise Exception(f"No data received in pubsub event. Event: {event}")
 
 
-# if __name__ == "__main__":
-# logging.basicConfig(level=logging.DEBUG)
-# fetch_historical_data(sys.argv[1])
-
 if __name__ == "__main__":
-    MESSAGE = "Historical Weather Begin!"
-    EVENT_DATA = base64.b64encode(str(MESSAGE).encode("utf-8"))
-    hello_fetch_historical_data(event={"data": EVENT_DATA})
+    logging.basicConfig(level=logging.DEBUG)
+    json_data = fetch_historical_data(sys.argv[1])
+    write_to_storage(json_data, sys.argv[1])
+
+# if __name__ == "__main__":
+#     MESSAGE = "Historical Weather Begin!"
+#     EVENT_DATA = base64.b64encode(str(MESSAGE).encode("utf-8"))
+#     hello_fetch_historical_data(event={"data": EVENT_DATA})
