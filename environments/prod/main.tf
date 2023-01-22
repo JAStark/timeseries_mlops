@@ -30,6 +30,7 @@ resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
   project  = var.project_id
 }
 
+# Enable the CF to write data to the bucket
 resource "google_storage_bucket_acl" "timeseries_mlops_weather_api_data_acl" {
   bucket = google_storage_bucket.timeseries_mlops_weather_api_data.name
 
@@ -59,13 +60,22 @@ resource "google_secret_manager_secret" "weather_api_key_prod" {
   }
 }
 
+# Update IAM policy to grant a role to a new member.
+# Other members for the role for the secret are preserved.
+resource "google_secret_manager_secret_iam_member" "member" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.weather_api_key_prod.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "user:weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com"
+}
+
 # Get the secret version itself. The version (actual secret) will be set up manually
 # in the Console.
 data "google_secret_manager_secret_version" "weather_api_key_version_prod" {
   secret = google_secret_manager_secret.weather_api_key_prod.secret_id
   depends_on = [
     google_secret_manager_secret.weather_api_key_prod,
-    # google_secret_manager_secret_iam_policy.policy
+    google_secret_manager_secret_iam_member.member
   ]
 }
 
