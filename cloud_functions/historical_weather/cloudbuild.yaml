@@ -1,0 +1,13 @@
+# Cloud Build to create and deploy Cloud Function for Historial Weather collection
+steps:
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - gcloud
+  - functions
+  - deploy
+  - timeseries-mlops-collect-historical-weather-dev
+  - --entry-point=hello_fetch_historical_data
+  - --region=europe-west1
+  - --source=./cloud_functions/historical_weather/
+  - --trigger-topic=historical_weather_topic
+  - --runtime=python310
