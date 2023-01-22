@@ -60,14 +60,14 @@ resource "google_secret_manager_secret" "weather_api_key_prod" {
   }
 }
 
-# Update IAM policy to grant a role to a new member.
-# Other members for the role for the secret are preserved.
-resource "google_secret_manager_secret_iam_member" "member" {
-  project   = var.project_id
-  secret_id = google_secret_manager_secret.weather_api_key_prod.secret_id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "user:weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com"
-}
+# # Update IAM policy to grant a role to a new member.
+# # Other members for the role for the secret are preserved.
+# resource "google_secret_manager_secret_iam_member" "member" {
+#   project   = var.project_id
+#   secret_id = google_secret_manager_secret.weather_api_key_prod.secret_id
+#   role      = "roles/secretmanager.secretAccessor"
+#   member    = "user:weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com"
+# }
 
 # Get the secret version itself. The version (actual secret) will be set up manually
 # in the Console.
@@ -75,7 +75,7 @@ data "google_secret_manager_secret_version" "weather_api_key_version_prod" {
   secret = google_secret_manager_secret.weather_api_key_prod.secret_id
   depends_on = [
     google_secret_manager_secret.weather_api_key_prod,
-    google_secret_manager_secret_iam_member.member
+    # google_secret_manager_secret_iam_member.member
   ]
 }
 
