@@ -18,7 +18,7 @@ import base64
 from google.cloud import storage
 from google.api_core import exceptions
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 API_KEY = os.environ["API_KEY"]
 PROJECT_ID = os.environ["PROJECT_ID"]
@@ -72,7 +72,7 @@ def main():
     logging.info(f"\nrealtime: {realtime}")
     json_data = fetch_realtime_data(realtime)
     logging.info("\nWRITING DATA TO STORAGE…")
-    # write_to_storage(json_data, realtime)
+    write_to_storage(json_data, realtime)
 
 
 def hello_fetch_realtime_data(event, context=None) -> None:
