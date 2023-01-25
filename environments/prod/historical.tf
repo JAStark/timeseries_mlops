@@ -16,29 +16,6 @@ resource "google_cloud_scheduler_job" "historical_weather_schedular" {
   }
 }
 
-# Set up Cloud Storage Bucket for Cloud Function to read code from
-resource "google_storage_bucket" "timeseries_mlops_cloud_functions" {
-  name     = "timeseries-mlops-cloud-functions-prod"
-  location = var.region
-  project  = var.project_id
-}
-
-# Set up Cloud Storage Bucket for API Data outputs
-resource "google_storage_bucket" "timeseries_mlops_weather_api_data" {
-  name     = "timeseries-mlops-weather-api-data-prod"
-  location = var.region
-  project  = var.project_id
-}
-
-# Enable the CF to write data to the bucket
-resource "google_storage_bucket_acl" "timeseries_mlops_weather_api_data_acl" {
-  bucket = google_storage_bucket.timeseries_mlops_weather_api_data.name
-
-  role_entity = [
-    "WRITER:user-weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com",
-  ]
-}
-
 # Set up path to zip file containing code for this Cloud Function
 resource "google_storage_bucket_object" "prod_historical_weather_cloud_function" {
   name           = "prod-historical-weather.zip"
@@ -46,28 +23,6 @@ resource "google_storage_bucket_object" "prod_historical_weather_cloud_function"
   source         = "/workspace/cloud_functions/historical_weather.zip"
   detect_md5hash = true
 }
-
-# Set up the Secret Manager which will contain the API_KEY
-resource "google_secret_manager_secret" "weather_api_key_prod" {
-  secret_id = "weather_api_key_prod"
-
-  replication {
-    user_managed {
-      replicas {
-        location = var.region
-      }
-    }
-  }
-}
-
-# # Update IAM policy to grant a role to a new member.
-# # Other members for the role for the secret are preserved.
-# resource "google_secret_manager_secret_iam_member" "member" {
-#   project   = var.project_id
-#   secret_id = google_secret_manager_secret.weather_api_key_prod.secret_id
-#   role      = "roles/secretmanager.secretAccessor"
-#   member    = "user:weather-cloud-functions@silver-antonym-326607.iam.gserviceaccount.com"
-# }
 
 # Get the secret version itself. The version (actual secret) will be set up manually
 # in the Console.
