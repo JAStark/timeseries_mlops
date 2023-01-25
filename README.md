@@ -9,17 +9,17 @@ Therefore I am going to use the Keras example for weather timeseries. This provi
 with something that can be predicted, with rapid feedback regarding the accuracy or
 correctness of the prediction (eg the next day or the next hour). There are several
 APIs for weather, and I want to make this more personal, so instead of the dataset provided
-in the Keras example I will be using data from another API … but which one? OpenWeather Data looks like a good start, but it's £140 per month :sob:
-- https://openweather.co.uk/api-products provides historical, current, and forecast.
-    - Time range: Historical data for 40 years back, current weather and different forecasts. Minute, hourly, and daily forecasts are        available for a different time period, from a few hours (minute forecast), up to a year ahead (climate forecast).
-    - Essential weather parameters: Temperature, precipitation, probability of precipitation, humidity, feels like, pressure, cloudiness, wind, etc.
-    - Availability: Any geographical location | Global coverage
-    - API: Pull and push for all products | Industry standards | Fast, reliable, simple syntax
+in the Keras example I will be using data from another API.
 
 Weather API
 - https://www.weatherapi.com which is free for
   - 1,000,000 calls per month
   - history for only 7 days
+  - Time range: Historical data for 7 days back, current weather and forecasts up to 10 days.
+
+Powered by <a href="https://www.weatherapi.com/" title="Weather API">WeatherAPI.com</a>
+<a href="https://www.weatherapi.com/" title="Free Weather API"><img src='//cdn.weatherapi.com/v4/images/weatherapi_logo.png' alt="Weather data by WeatherAPI.com" border="0"></a>
+
 
 ## Infrastructure
 - IaC using Terraform with the Google Provider
@@ -31,11 +31,11 @@ Weather API
 ## Dealing with secrets
 I used terraform to create the secret manager for the API Key secret. Then, I went into the newly created resource in the Console and added a `version`, where I pasted in the API Key. Another option is to give it a file path, but the key is tiny, so I just pasted it in.
 
-Now, hopefully, I can reference the secret in terraform using the `data.` syntax ... :fingers_crossed:
+Now, the secret is applied in the terraform cloud function resource definition, which will then make the API key available to the cloud function as an environment variable.
 
 ## Data Collection
-- 7 day historical collection limit. Need to start collecting!
-- Current data.
+- **historical weather data** is currently running once per day, fetching yesterday's data. Yesterday's data has weather data for each hour of the day.
+- **current weather data** is in progress. It will run once per hour each day to collect the weather for _right now_. The API appears to update the weather every 15 minutes. This means if I query the data at 10:10, I will receive the current weather as of 10:00. If I query again at 10:17, I will receive the weather as of 10:15.
 - 14 day forecast
   Having both current and forecast data could be really interesting as I can compare my predictions with the API's predictions _and_ the real outcome.
   I can also use their predictions _and/or_ the current values (truth) to track my algorithm performance against, and use to determine when to retrain my algorithm.
