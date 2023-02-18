@@ -1,9 +1,19 @@
-"""Cloud Function runs once per hour to fetch the realtime weather into one json file.
+"""This cloud function runs once per hour to fetch the for the next 3 days,
+including the current day.
+API call returns a JSON file containing:
+- current day, current weather
+- current day, forecast for each hour
+- next day, forecast for each hour
+- day after that, forecast for each hour
+
+Unclear whether these hourly forecast epochs change when queriying over the course
+of a day. Eg, if I query once per day, are those hourly forecasts static for the
+whole day? or do they get updated?
+
+I'm going to assume (hope) they get updated over the course of the day, therefore
+I will collect data once per hour.
 
 API: https://www.weatherapi.com/docs/
-realtime weather or realtime weather API method allows a user to get up to date
-realtime weather information in json and xml. The data is returned as a realtime Object.
-realtime object contains realtime or realtime weather information for a given city.
 
 """
 
@@ -26,13 +36,13 @@ STORAGE_CLIENT = storage.Client("PROJECT_ID")
 BUCKET_NAME = os.environ["BUCKET_NAME"]
 
 
-def write_to_storage(json_data: dict, realtime: tuple) -> None:
+def write_to_storage(json_data: dict, forecast: tuple) -> None:
     """Funtion to write json data to file in GCS.
-    File name: realtime_weather_<YYYY-MM-DD_HH>
+    File name: forecast_weather_<YYYY-MM-DD_HH>
     """
 
     filename = (
-        f"realtime_weather/manchester_weather_{realtime[1]}_{str(realtime[0])}.json"
+        f"forecast_weather/manchester_weather_{forecast[1]}_{str(forecast[0])}.json"
     )
     try:
         bucket = STORAGE_CLIENT.get_bucket(BUCKET_NAME)
@@ -45,43 +55,41 @@ def write_to_storage(json_data: dict, realtime: tuple) -> None:
         logging.info(f"Something went wrong. Check the logs {e}")
 
 
-def fetch_realtime_data(realtime: tuple) -> dict:
-    """Function to call API and fetch realtime weather data"""
+def fetch_forecast_data(forecast: tuple) -> dict:
+    """Function to call API and fetch forecast weather data"""
 
-    url = (
-        f"https://api.weatherapi.com/v1/current.json?key={API_KEY}&q=manchester&aqi=yes"
-    )
+    url = f"https://api.weatherapi.com/v1/forecast.json?key={API_KEY}&q=Manchester&days=3&aqi=yes&alerts=no"
     response = requests.request("GET", url)
     json_data = response.text
     logging.info(f"TYPE RESPONSE: {type(json_data)}")
     logging.info(
-        f"Data collected for day {realtime[1]}, and hour {realtime[0]}: \n{json_data}"
+        f"Data collected for day {forecast[1]}, and hour {forecast[0]}: \n{json_data}"
     )
     return json_data
 
 
-def get_realtime() -> str:
-    """Function to get the date and hour for realtime as a string: `YYYY-MM-DD_HH`"""
+def get_forecast() -> str:
+    """Function to get the date and hour for forecast as a string: `YYYY-MM-DD_HH`"""
 
     today = datetime.today()
-    realtime_hour = today.time().hour
-    realtime_date = today.date().isoformat()
-    logging.info(f"TYPE realtime hour: {realtime_hour} for {realtime_date}")
-    return realtime_hour, realtime_date
+    forecast_hour = today.time().hour
+    forecast_date = today.date().isoformat()
+    logging.info(f"Forecast hour: {forecast_hour} for {forecast_date}")
+    return forecast_hour, forecast_date
 
 
 def main():
     """Function that calls other Functions"""
 
-    logging.info("Starting main for realtime weather data collection")
-    realtime = get_realtime()
-    logging.info(f"\nrealtime: {realtime}")
-    json_data = fetch_realtime_data(realtime)
+    logging.info("Starting main for forecast weather data collection")
+    forecast = get_forecast()
+    logging.info(f"\nforecast: {forecast}")
+    json_data = fetch_forecast_data(forecast)
     logging.info("\nWRITING DATA TO STORAGE…")
-    write_to_storage(json_data, realtime)
+    write_to_storage(json_data, forecast)
 
 
-def hello_fetch_realtime_data(event, context=None) -> None:
+def hello_fetch_forecast_data(event, context=None) -> None:
     """Entry point for the Cloud Function.
     Args:
         event (dict): Event payload from the Cloud Scheduler
@@ -98,11 +106,11 @@ def hello_fetch_realtime_data(event, context=None) -> None:
         logging.info(f"EVENT: {event}")
         data = base64.b64decode(event["data"]).decode("utf-8")
 
-        if data == "Realtime Weather Begin!":
+        if data == "Forecast Weather Begin!":
             main()
         else:
             raise Exception(
-                f'Expected Message: "Realtime Weather Begin!"\nActual Message: "{data}"'
+                f'Expected Message: "Forecast Weather Begin!"\nActual Message: "{data}"'
             )
     else:
         raise Exception(f"No data received in pubsub event. Event: {event}")
@@ -110,5 +118,5 @@ def hello_fetch_realtime_data(event, context=None) -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    json_data = fetch_realtime_data(sys.argv[1])
+    json_data = fetch_forecast_data(sys.argv[1])
     write_to_storage(json_data, sys.argv[1])
